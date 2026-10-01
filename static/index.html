@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Maatila-chatbot</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 680px; margin: 0 auto; padding: 1rem; }
+    #log { height: 60vh; overflow-y: auto; border: 1px solid #ccc; border-radius: 8px; padding: .75rem; }
+    .msg { margin: .6rem 0; white-space: pre-wrap; }
+    .user { text-align: right; color: #0b6b3a; }
+    .src { font-size: .8rem; color: #666; }
+    form { display: flex; gap: .5rem; margin-top: .75rem; }
+    input { flex: 1; padding: .6rem; }
+  </style>
+</head>
+<body>
+  <h1>Maatila-chatbot</h1>
+  <div id="log"></div>
+  <form id="form">
+    <input id="input" maxlength="1000" placeholder="Kysy dokumenteista..." autocomplete="off" />
+    <button>Lähetä</button>
+  </form>
+  <script>
+    const log = document.getElementById("log");
+    const form = document.getElementById("form");
+    const input = document.getElementById("input");
+
+    function add(cls, text) {
+      const d = document.createElement("div");
+      d.className = "msg " + cls;
+      d.textContent = text;
+      log.appendChild(d);
+      log.scrollTop = log.scrollHeight;
+      return d;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const q = input.value.trim();
+      if (!q) return;
+      input.value = "";
+      add("user", q);
+      const pending = add("bot", "Mietitään...");
+      try {
+        const r = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: q }),
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.detail || "Virhe");
+        pending.textContent = data.answer;
+        if (data.sources.length) add("src", "Lähteet: " + data.sources.join(", "));
+      } catch (err) {
+        pending.textContent = "Virhe: " + err.message;
+      }
+    });
+  </script>
+</body>
+</html>
