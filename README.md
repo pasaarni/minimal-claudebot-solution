@@ -62,4 +62,4 @@ Julkaisu: tuo repo Verceliin ja lisää samat ympäristömuuttujat Vercelin aset
 
 ## Lisenssi
 
-Lisää tähän haluamasi lisenssi (esim. MIT).
+Apache License
